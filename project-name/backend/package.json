@@ -1,0 +1,12 @@
+{
+  "name": "backend",
+  "private": true,
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
