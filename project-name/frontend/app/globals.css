@@ -42,10 +42,10 @@ body{background:radial-gradient(circle at 90% 0,#eef1ed 0,transparent 34%),var(-
 
 
 /* Scroll-scrubbed identity over the naturally playing intro film. */
-.cinematic-intro{position:relative;z-index:1100;width:100%;height:360vh;height:360svh;opacity:1;visibility:visible;transition:opacity 850ms ease,visibility 850ms ease;pointer-events:none}
+.cinematic-intro{position:fixed;inset:0;z-index:1100;width:100%;height:100vh;height:100svh;background:#050606;opacity:1;visibility:visible;transition:opacity 850ms ease,visibility 850ms ease;pointer-events:none}
 .cinematic-intro.is-leaving{opacity:0;visibility:hidden}
-.cinematic-intro-sticky{position:sticky;top:0;width:100%;height:100vh;height:100svh;overflow:hidden;background:#050606;color:#f4f5f1;isolation:isolate}
-.cinematic-intro video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cinematic-intro-sticky{position:absolute;inset:0;width:100%;height:100vh;height:100svh;overflow:hidden;background:#050606;color:#f4f5f1;isolation:isolate;transform:translateZ(0)}
+.cinematic-intro video{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;outline:0;object-fit:cover;object-position:center}
 .intro-shade{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(3,6,6,.78),rgba(3,6,6,.16) 78%),linear-gradient(0deg,rgba(3,6,6,.52),transparent 38%,rgba(3,6,6,.22));pointer-events:none}
 .intro-copy{position:absolute;z-index:1;left:clamp(24px,9vw,150px);top:50%;width:min(760px,82vw);transform:translateY(-50%);pointer-events:none}
 .intro-line{opacity:0}
@@ -57,7 +57,7 @@ body{background:radial-gradient(circle at 90% 0,#eef1ed 0,transparent 34%),var(-
 .intro-caption{margin:clamp(23px,5vh,48px) 0 0;color:rgba(255,255,255,.62)}
 .intro-index{position:absolute;z-index:1;right:clamp(20px,5vw,72px);bottom:clamp(22px,5vh,56px);color:rgba(255,255,255,.73);font-size:9px}
 @media(max-width:640px){.intro-copy{left:24px;width:calc(100% - 48px)}.intro-copy h1{font-size:clamp(43px,12vw,72px)}.intro-overline,.intro-caption{font-size:9px;letter-spacing:.12em}.intro-shade{background:linear-gradient(90deg,rgba(3,6,6,.72),rgba(3,6,6,.16)),linear-gradient(0deg,rgba(3,6,6,.55),transparent 45%)}}
-@media(prefers-reduced-motion:reduce){.cinematic-intro{height:100vh;height:100svh;transition-duration:250ms}.cinematic-intro-sticky{position:relative}.intro-line{opacity:1}}
+@media(prefers-reduced-motion:reduce){.cinematic-intro{height:100vh;height:100svh;transition-duration:250ms}.cinematic-intro-sticky{position:absolute}.intro-line{opacity:1}}
 
 /* Keep decorative transforms and the 3D portal inside the viewport without changing native vertical scrolling. */
 html, body { overflow-x: clip; }

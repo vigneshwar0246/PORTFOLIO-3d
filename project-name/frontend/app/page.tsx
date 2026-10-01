@@ -73,52 +73,54 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setIntroLeaving(true);
-      const timer = window.setTimeout(() => setIntroVisible(false), 350);
-      return () => window.clearTimeout(timer);
-    }
-    const lenis = new Lenis({ autoRaf: false, anchors: true, smoothWheel: true, lerp: 0.075 });
-    lenisRef.current = lenis;
-    lenis.on("scroll", ScrollTrigger.update);
-    const tick = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
-
     const section = introSectionRef.current;
     const stage = section?.querySelector<HTMLElement>(".cinematic-intro-sticky");
     const copy = introCopyRef.current;
-    let fadeTimer = 0;
+    const video = introVideoRef.current;
+    if (!section || !stage || !copy || !video) return;
+    video.playbackRate = 0.85;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lines = copy.querySelectorAll<HTMLElement>(".intro-line");
     let disposed = false;
-    if (section && stage && copy) {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: section, start: "top top", end: "bottom bottom", scrub: 1.25,
-            onLeave: () => {
-              if (disposed || fadeTimer) return;
-              setIntroLeaving(true);
-              fadeTimer = window.setTimeout(() => setIntroVisible(false), 850);
-            },
-            onEnterBack: () => { window.clearTimeout(fadeTimer); fadeTimer = 0; if (!disposed) setIntroLeaving(false); },
-          },
-        });
-        tl.fromTo(copy.querySelectorAll(".intro-line"), { y: 42, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.22, ease: "power2.out" }, 0.05)
-          .fromTo(stage, { scale: 1 }, { scale: 0.94, ease: "none", duration: 2.7 }, 0)
-          .to(copy, { yPercent: -18, opacity: 0, ease: "power2.inOut", duration: 0.8 }, 2.1)
-          .to(stage, { opacity: 0, ease: "power1.in", duration: 0.45 }, 2.52);
-        return () => { tl.scrollTrigger?.kill(); tl.kill(); };
-      });
+    let removeIntroTimer = 0;
+    let overlayFadeTimer = 0;
+
+    const finishIntro = () => {
+      if (disposed || introLeaving) return;
+      setIntroLeaving(true);
+      removeIntroTimer = window.setTimeout(() => {
+        if (!disposed) setIntroVisible(false);
+      }, 850);
+    };
+
+    video.addEventListener("ended", finishIntro);
+    if (reducedMotion) {
+      gsap.set(lines, { y: 0, opacity: 1 });
+      overlayFadeTimer = window.setTimeout(() => {
+        if (!disposed) gsap.to(lines, { opacity: 0, duration: 0.35, stagger: 0.05, ease: "power2.inOut" });
+      }, 3000);
       return () => {
-        disposed = true; window.clearTimeout(fadeTimer); mm.revert();
-        gsap.ticker.remove(tick); lenis.destroy(); lenisRef.current = null;
-        gsap.ticker.lagSmoothing(500, 33);
+        disposed = true;
+        window.clearTimeout(removeIntroTimer);
+        window.clearTimeout(overlayFadeTimer);
+        video.removeEventListener("ended", finishIntro);
       };
     }
+
+    const timeline = gsap.timeline();
+    timeline.fromTo(lines, { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.32, ease: "power2.out" })
+      .to({}, { duration: 0.1 });
+    overlayFadeTimer = window.setTimeout(() => {
+      if (!disposed) gsap.to(lines, { y: -18, opacity: 0, duration: 0.75, stagger: 0.1, ease: "power2.inOut" });
+    }, 3000);
+
     return () => {
-      disposed = true; gsap.ticker.remove(tick); lenis.destroy(); lenisRef.current = null;
-      gsap.ticker.lagSmoothing(500, 33);
+      disposed = true;
+      window.clearTimeout(removeIntroTimer);
+      window.clearTimeout(overlayFadeTimer);
+      video.removeEventListener("ended", finishIntro);
+      timeline.kill();
+      gsap.killTweensOf(lines);
     };
   }, []);
 
@@ -204,14 +206,14 @@ export default function Home() {
     {introVisible && (
       <section ref={introSectionRef} className={`cinematic-intro ${introLeaving ? "is-leaving" : ""}`} aria-label="Cinematic introduction">
         <div className="cinematic-intro-sticky">
-          <video ref={introVideoRef} src="/videos/intro.mp4" autoPlay muted playsInline loop preload="auto" aria-hidden="true" />
+          <video ref={introVideoRef} src="/videos/intro.mp4" autoPlay muted playsInline preload="auto"  aria-hidden="true" />
           <div className="intro-shade" aria-hidden="true" />
           <div ref={introCopyRef} className="intro-copy">
             <p className="intro-line intro-overline">VIGNESHWAR T. <span>·</span> AI / ML DEVELOPER</p>
             <h1 className="intro-line">Building intelligent<br /><i>systems through code.</i></h1>
             <p className="intro-line intro-caption">MACHINE LEARNING <span>·</span> DATA <span>·</span> SOFTWARE</p>
           </div>
-          <span className="intro-index" aria-hidden="true">01 — 04&nbsp;&nbsp; SCROLL TO ENTER</span>
+          <span className="intro-index" aria-hidden="true">01 — 04&nbsp;&nbsp; INTRODUCING</span>
         </div>
       </section>
     )}
