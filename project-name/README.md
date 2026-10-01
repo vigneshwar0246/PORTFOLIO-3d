@@ -1,27 +1,54 @@
 # Vigneshwar T - 3D AI/ML Portfolio
 
-A responsive personal portfolio with an interactive four-key 3D entrance, cursor motion, project dialogs, skills, education, achievements, certifications and contact details.
+A responsive personal portfolio with an interactive four-key 3D entrance, cursor motion, project dialogs, skills, education, achievements, certifications, and contact details.
 
-## Run locally
+## 🚀 How to Run the Project
 
-1. Install Node.js 22 or newer.
-2. Open this folder in VS Code and run `npm install`.
-3. Run `npm run dev` and open the local address shown in the terminal.
+This project consists of a Next.js frontend and an Express backend. 
 
-## Production build
+### 1. Start the Frontend (3D Portfolio)
+The frontend is built with Next.js, React, and Tailwind CSS.
+1. Open a terminal and navigate to the frontend directory:
+   ```bash
+   cd project-name/frontend
+   ```
+2. Install the dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open your browser and visit **http://localhost:3000**
 
-Run `npm run build`.
+### 2. Start the Backend (Optional)
+The backend is an Express server for handling contact form submissions and database connections.
+1. Open a new terminal and navigate to the backend directory:
+   ```bash
+   cd project-name/backend
+   ```
+2. Install the dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the server:
+   ```bash
+   npm start
+   ```
+
+---
 
 ## Main files
 
-- `app/page.tsx` - portfolio content and interactions
-- `app/globals.css` - complete responsive design and 3D key styling
-- `app/layout.tsx` - page metadata
+- `frontend/app/page.tsx` - Portfolio content and interactions
+- `frontend/app/globals.css` - Complete responsive design and 3D key styling
+- `frontend/app/layout.tsx` - Page metadata
 
 ## Personalize
 
-- Add a hosted resume URL to `RESUME_URL` near the top of `app/page.tsx`.
-- The large profile image currently uses the GitHub profile image for `vigneshwar0246`.
-- Update project repository links after the projects are published.
+- The resume PDF is located at `frontend/public/resume.pdf`. You can replace this file to update your resume.
+- The large profile image uses `frontend/public/images/profile/my-photo1.png`. 
+- Update project repository links in `frontend/app/page.tsx` after the projects are published.
 
-The contact form is a front-end demonstration. The direct email link is the functional contact option.
+The contact form is currently a front-end demonstration. The direct email link is the functional contact option.

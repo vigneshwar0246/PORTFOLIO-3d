@@ -1,6 +1,11 @@
 "use client";
 
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
+import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const RESUME_URL = "/resume.pdf";
 const socials = {
@@ -43,6 +48,12 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
 export default function Home() {
   const [entered, setEntered] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [introVisible, setIntroVisible] = useState(true);
+  const [introLeaving, setIntroLeaving] = useState(false);
+  const introSectionRef = useRef<HTMLDivElement>(null);
+  const introVideoRef = useRef<HTMLVideoElement>(null);
+  const introCopyRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
   const [toast, setToast] = useState("");
   const [active, setActive] = useState("home");
   const [modal, setModal] = useState<number | null>(null);
@@ -56,9 +67,60 @@ export default function Home() {
       const target = document.getElementById(id);
       if (!target) return;
       history.replaceState(null, "", `#${id}`);
-      window.scrollTo({ top: Math.max(0, target.offsetTop - 72), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      if (lenisRef.current) lenisRef.current.scrollTo(target, { offset: -72, duration: 1.15 });
+      else window.scrollTo({ top: Math.max(0, target.offsetTop - 72), behavior: "auto" });
     }, 1050);
   };
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIntroLeaving(true);
+      const timer = window.setTimeout(() => setIntroVisible(false), 350);
+      return () => window.clearTimeout(timer);
+    }
+    const lenis = new Lenis({ autoRaf: false, anchors: true, smoothWheel: true, lerp: 0.075 });
+    lenisRef.current = lenis;
+    lenis.on("scroll", ScrollTrigger.update);
+    const tick = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(tick);
+    gsap.ticker.lagSmoothing(0);
+
+    const section = introSectionRef.current;
+    const stage = section?.querySelector<HTMLElement>(".cinematic-intro-sticky");
+    const copy = introCopyRef.current;
+    let fadeTimer = 0;
+    let disposed = false;
+    if (section && stage && copy) {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section, start: "top top", end: "bottom bottom", scrub: 1.25,
+            onLeave: () => {
+              if (disposed || fadeTimer) return;
+              setIntroLeaving(true);
+              fadeTimer = window.setTimeout(() => setIntroVisible(false), 850);
+            },
+            onEnterBack: () => { window.clearTimeout(fadeTimer); fadeTimer = 0; if (!disposed) setIntroLeaving(false); },
+          },
+        });
+        tl.fromTo(copy.querySelectorAll(".intro-line"), { y: 42, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.22, ease: "power2.out" }, 0.05)
+          .fromTo(stage, { scale: 1 }, { scale: 0.94, ease: "none", duration: 2.7 }, 0)
+          .to(copy, { yPercent: -18, opacity: 0, ease: "power2.inOut", duration: 0.8 }, 2.1)
+          .to(stage, { opacity: 0, ease: "power1.in", duration: 0.45 }, 2.52);
+        return () => { tl.scrollTrigger?.kill(); tl.kill(); };
+      });
+      return () => {
+        disposed = true; window.clearTimeout(fadeTimer); mm.revert();
+        gsap.ticker.remove(tick); lenis.destroy(); lenisRef.current = null;
+        gsap.ticker.lagSmoothing(500, 33);
+      };
+    }
+    return () => {
+      disposed = true; gsap.ticker.remove(tick); lenis.destroy(); lenisRef.current = null;
+      gsap.ticker.lagSmoothing(500, 33);
+    };
+  }, []);
 
   useEffect(() => {
     const cursor = document.querySelector<HTMLElement>(".cursor-dot");
@@ -118,7 +180,8 @@ export default function Home() {
   const backToPortal = () => {
     setEntered(false); setMenu(false); setModal(null);
     history.replaceState(null, "", `${location.pathname}${location.search}`);
-    window.scrollTo({ top: 0, behavior: "auto" });
+    if (lenisRef.current) lenisRef.current.scrollTo(0, { immediate: true });
+    else window.scrollTo({ top: 0, behavior: "auto" });
     window.setTimeout(() => document.querySelector<HTMLElement>(".key-portfolio")?.focus(), 250);
   };
   const submit = (e: FormEvent<HTMLFormElement>) => {
@@ -138,6 +201,20 @@ export default function Home() {
   };
 
   return <>
+    {introVisible && (
+      <section ref={introSectionRef} className={`cinematic-intro ${introLeaving ? "is-leaving" : ""}`} aria-label="Cinematic introduction">
+        <div className="cinematic-intro-sticky">
+          <video ref={introVideoRef} src="/videos/intro.mp4" autoPlay muted playsInline loop preload="auto" aria-hidden="true" />
+          <div className="intro-shade" aria-hidden="true" />
+          <div ref={introCopyRef} className="intro-copy">
+            <p className="intro-line intro-overline">VIGNESHWAR T. <span>·</span> AI / ML DEVELOPER</p>
+            <h1 className="intro-line">Building intelligent<br /><i>systems through code.</i></h1>
+            <p className="intro-line intro-caption">MACHINE LEARNING <span>·</span> DATA <span>·</span> SOFTWARE</p>
+          </div>
+          <span className="intro-index" aria-hidden="true">01 — 04&nbsp;&nbsp; SCROLL TO ENTER</span>
+        </div>
+      </section>
+    )}
     <div className="cursor-dot" /><div className="cursor-halo" />
     <a className="skip" href="#home">Skip to content</a>
     <div className={`portal key-portal ${entered ? "portal--open" : ""}`} aria-hidden={entered}>
